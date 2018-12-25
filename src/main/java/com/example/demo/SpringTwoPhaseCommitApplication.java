@@ -5,13 +5,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.transaction.ChainedTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
 @SpringBootApplication
-@EnableConfigurationProperties
 public class SpringTwoPhaseCommitApplication {
 
 	@Autowired @Qualifier("transactionManager2")PlatformTransactionManager manager;
@@ -22,7 +20,7 @@ public class SpringTwoPhaseCommitApplication {
 	
 	@Bean("transactionManager")
 	public PlatformTransactionManager transactionManager() {
-		ChainedTransactionManager tx= new ChainedTransactionManager(new PlatformTransactionManager[]{manager, manager1});
+		ChainedTransactionManager tx= new ChainedTransactionManager(new PlatformTransactionManager[]{ manager, manager1});
 				return tx;
 	}
 

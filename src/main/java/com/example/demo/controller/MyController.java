@@ -33,7 +33,7 @@ public class MyController {
 	public List<Person> get() {
 		Person p1=rep1.findById(1).get();
 		Person p2=rep2.findById(1).get();
-		return Arrays.asList(p2);
+		return Arrays.asList(p1,p2);
 	}
 
 }

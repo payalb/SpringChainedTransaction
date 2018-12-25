@@ -49,10 +49,10 @@ public class H2Config {
 	        em.setJpaVendorAdapter(vendorAdapter);
 		  Map<String,String> properties=  new HashMap<>();
 		  properties.put("spring.jpa.properties.hibernate.dialect", "org.hibernate.dialect.PostgreSQL9Dialect");
-		  properties.put( "spring.jpa.show-sql","true");
+		  properties.put( "spring.jpa.show_sql","true");
 		  properties.put(  "hibernate.hbm2ddl.auto","create");
 		  properties.put("hibernate.dialect","org.hibernate.dialect.PostgreSQL9Dialect");
-		  properties.put("spring.jpa.properties.hibernate.temp.use_jdbc_metadata_defaults","false"); 
+		  properties.put("hibernate.jdbc.lob.non_contextual_creation","true"); 
 		  em.setDataSource(dataSource1());
 	      em.setPackagesToScan("com.example.demo.dto");
 	     em.setJpaPropertyMap(properties);
