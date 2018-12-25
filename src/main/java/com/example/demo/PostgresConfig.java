@@ -3,58 +3,71 @@ package com.example.demo;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
-import org.hibernate.dialect.PostgreSQLDialect;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.jdbc.DataSourceBuilder;
-import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(basePackages="com.example.demo.dao1")
+@EnableJpaRepositories(basePackages="com.example.demo.dao1",
+entityManagerFactoryRef="entityManagerFactory",
+transactionManagerRef="transactionManager1")
 public class PostgresConfig {
-	
-	  @Bean(name = "dataSource1")
-	  @ConfigurationProperties(prefix = "spring.datasource1")
-	  public DataSource dataSource() {
-	    return DataSourceBuilder.create().build();
-	  }
-	  
-	  @Bean(name = "entityManagerFactory1")
+
+	@Autowired Environment env;
+	@Primary
+    @Bean
+    public DataSource dataSource2() {
+  
+        DriverManagerDataSource dataSource
+          = new DriverManagerDataSource();
+        dataSource.setDriverClassName(
+          env.getProperty("spring.datasource1.driverClassName"));
+        dataSource.setUrl(env.getProperty("spring.datasource1.jdbc-url"));
+        dataSource.setUsername(env.getProperty("spring.datasource1.username"));
+        dataSource.setPassword(env.getProperty("spring.datasource1.password"));
+ 
+        return dataSource;
+    }
+ 
+	  @Primary
+	  @Bean("entityManagerFactory")
 	  public LocalContainerEntityManagerFactoryBean 
-	  entityManagerFactory(
-	    EntityManagerFactoryBuilder builder,
-	    @Qualifier("dataSource1") DataSource dataSource
+	  entityManagerFactory1(
 	  ) {
+		  LocalContainerEntityManagerFactoryBean em
+          = new LocalContainerEntityManagerFactoryBean();
+		  HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+	        em.setJpaVendorAdapter(vendorAdapter);
 		  Map<String,String> properties=  new HashMap<>();
-		  properties.put( "spring.jpa.show-sql","true");
 		  properties.put("spring.jpa.properties.hibernate.dialect", "org.hibernate.dialect.PostgreSQL9Dialect");
+		  properties.put( "spring.jpa.show-sql","true");
 		  properties.put(  "hibernate.hbm2ddl.auto","create");
-		  return builder
-	      .dataSource(dataSource)
-	      .packages("com.example.demo.dto")
-	      .properties(properties)
-	      .persistenceUnit("postgres")
-	      .build();
+		  properties.put("hibernate.dialect","org.hibernate.dialect.PostgreSQL9Dialect");
+		  properties.put("spring.jpa.properties.hibernate.temp.use_jdbc_metadata_defaults","false");
+		  em.setDataSource(dataSource2());
+	      em.setPackagesToScan("com.example.demo.dto");
+	     em.setJpaPropertyMap(properties);
+	     em.setPersistenceUnitName("postgres1");
+	    
+		  em.afterPropertiesSet();
+		  return em;
 	  }
 	    
-	  @Primary
 	  @Bean(name = "transactionManager1")
 	  public PlatformTransactionManager transactionManager(
-	    @Qualifier("entityManagerFactory1") EntityManagerFactory 
-	    entityManagerFactory
 	  ) {
-	    return new JpaTransactionManager(entityManagerFactory);
+	    return new JpaTransactionManager(entityManagerFactory1().getObject());
 	  }
 }
